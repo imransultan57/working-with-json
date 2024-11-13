@@ -1,0 +1,331 @@
+// Part 1: Create Collections and Insert Data
+
+// Step 1.1: Insert 5 Customers into the 'customers' Collection
+db.customers.insertMany([
+  {
+    "_id": ObjectId("64b5f314e1d2f59f080c92a1"),
+    "name": "John Doe",
+    "email": "johndoe@example.com",
+    "address": {
+      "street": "123 Main St",
+      "city": "Springfield",
+      "zipcode": "12345"
+    },
+    "phone": "555-1234",
+    "registration_date": ISODate("2023-01-01T12:00:00Z")
+  },
+  {
+    "_id": ObjectId("64b5f314e1d2f59f080c92a2"),
+    "name": "Ravi Kumar",
+    "email": "ravikumar@example.com",
+    "address": {
+      "street": "10, Sector 12",
+      "city": "Noida",
+      "zipcode": "201301"
+    },
+    "phone": "9876543210",
+    "registration_date": ISODate("2023-02-01T14:00:00Z")
+  },
+  {
+    "_id": ObjectId("64b5f314e1d2f59f080c92a3"),
+    "name": "Priya Sharma",
+    "email": "priyasharma@example.com",
+    "address": {
+      "street": "56, MG Road",
+      "city": "Bengaluru",
+      "zipcode": "560001"
+    },
+    "phone": "9123456789",
+    "registration_date": ISODate("2023-03-01T16:00:00Z")
+  },
+  {
+    "_id": ObjectId("64b5f314e1d2f59f080c92a4"),
+    "name": "Sneha Gupta",
+    "email": "snehagupta@example.com",
+    "address": {
+      "street": "45, Andheri West",
+      "city": "Mumbai",
+      "zipcode": "400058"
+    },
+    "phone": "9988776655",
+    "registration_date": ISODate("2023-04-01T18:30:00Z")
+  },
+  {
+    "_id": ObjectId("64b5f314e1d2f59f080c92a5"),
+    "name": "Vikram Patel",
+    "email": "vikrampatel@example.com",
+    "address": {
+      "street": "22, MG Road",
+      "city": "Ahmedabad",
+      "zipcode": "380009"
+    },
+    "phone": "9001122334",
+    "registration_date": ISODate("2023-05-01T10:15:00Z")
+  }
+]);
+
+// Step 1.2: Insert 5 Orders into the 'orders' Collection
+db.orders.insertMany([
+  {
+    "_id": ObjectId("64b5f314e1d2f59f080c92e1"),
+    "order_id": "ORD123456",
+    "customer_id": ObjectId("64b5f314e1d2f59f080c92a1"), // Reference to John Doe
+    "order_date": ISODate("2023-05-15T14:00:00Z"),
+    "status": "shipped",
+    "items": [
+      { "product_name": "Laptop", "quantity": 1, "price": 1500 },
+      { "product_name": "Mouse", "quantity": 2, "price": 25 }
+    ],
+    "total_value": 1550
+  },
+  {
+    "_id": ObjectId("64b5f314e1d2f59f080c92e2"),
+    "order_id": "ORD123457",
+    "customer_id": ObjectId("64b5f314e1d2f59f080c92a2"), // Reference to Ravi Kumar
+    "order_date": ISODate("2023-06-10T11:30:00Z"),
+    "status": "processing",
+    "items": [
+      { "product_name": "Smartphone", "quantity": 1, "price": 700 }
+    ],
+    "total_value": 700
+  },
+  {
+    "_id": ObjectId("64b5f314e1d2f59f080c92e3"),
+    "order_id": "ORD123458",
+    "customer_id": ObjectId("64b5f314e1d2f59f080c92a3"), // Reference to Priya Sharma
+    "order_date": ISODate("2023-07-05T10:00:00Z"),
+    "status": "delivered",
+    "items": [
+      { "product_name": "Tablet", "quantity": 2, "price": 200 }
+    ],
+    "total_value": 400
+  },
+  {
+    "_id": ObjectId("64b5f314e1d2f59f080c92e4"),
+    "order_id": "ORD123459",
+    "customer_id": ObjectId("64b5f314e1d2f59f080c92a4"), // Reference to Sneha Gupta
+    "order_date": ISODate("2023-08-20T15:45:00Z"),
+    "status": "processing",
+    "items": [
+      { "product_name": "Smartwatch", "quantity": 1, "price": 200 }
+    ],
+    "total_value": 200
+  },
+  {
+    "_id": ObjectId("64b5f314e1d2f59f080c92e5"),
+    "order_id": "ORD123460",
+    "customer_id": ObjectId("64b5f314e1d2f59f080c92a5"), // Reference to Vikram Patel
+    "order_date": ISODate("2023-09-10T13:30:00Z"),
+    "status": "shipped",
+    "items": [
+      { "product_name": "Printer", "quantity": 1, "price": 150 }
+    ],
+    "total_value": 150
+  }
+]);
+
+// Step 2: Find Orders for a Specific Customer ("John Doe")
+const customer = db.customers.findOne({ name: "John Doe" });
+db.orders.find({ customer_id: customer._id });
+
+// Step 3: Find the Customer for a Specific Order (order_id = "ORD123456")
+const order = db.orders.findOne({ order_id: "ORD123456" });
+db.customers.findOne({ _id: order.customer_id });
+
+// Step 4: Update Order Status to "Delivered" (for order_id = "ORD123456")
+db.orders.updateOne(
+  { order_id: "ORD123456" },
+  { $set: { status: "delivered" } }
+);
+
+// Step 5: Delete an Order (where order_id = "ORD123456")
+db.orders.deleteOne({ order_id: "ORD123456" });
+
+
+// Part 2: Aggregation Pipeline
+
+// 1. Calculate Total Value of All Orders by Customer
+db.orders.aggregate([
+  {
+    $lookup: {
+      from: "customers",
+      localField: "customer_id",
+      foreignField: "_id",
+      as: "customer_details"
+    }
+  },
+  {
+    $unwind: "$customer_details"
+  },
+  {
+    $group: {
+      _id: "$customer_details.name",
+      totalOrderValue: { $sum: "$total_value" }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      customerName: "$_id",
+      totalOrderValue: 1
+    }
+  }
+]);
+
+// 2. Group Orders by Status
+db.orders.aggregate([
+  {
+    $group: {
+      _id: "$status",
+      orderCount: { $sum: 1 }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      status: "$_id",
+      orderCount: 1
+    }
+  }
+]);
+
+// 3. List Customers with Their Recent Orders
+db.orders.aggregate([
+  {
+    $sort: { order_date: -1 }
+  },
+  {
+    $group: {
+      _id: "$customer_id",
+      mostRecentOrder: { $first: "$$ROOT" }
+    }
+  },
+  {
+    $lookup: {
+      from: "customers",
+      localField: "_id",
+      foreignField: "_id",
+      as: "customer_details"
+    }
+  },
+  {
+    $unwind: "$customer_details"
+  },
+  {
+    $project: {
+      _id: 0,
+      customerName: "$customer_details.name",
+      email: "$customer_details.email",
+      recentOrder: {
+        order_id: "$mostRecentOrder.order_id",
+        total_value: "$mostRecentOrder.total_value",
+        order_date: "$mostRecentOrder.order_date"
+      }
+    }
+  }
+]);
+
+// 4. Find the Most Expensive Order by Customer
+db.orders.aggregate([
+  {
+    $sort: { total_value: -1 }
+  },
+  {
+    $group: {
+      _id: "$customer_id",
+      mostExpensiveOrder: { $first: "$$ROOT" }
+    }
+  },
+  {
+    $lookup: {
+      from: "customers",
+      localField: "_id",
+      foreignField: "_id",
+      as: "customer_details"
+    }
+  },
+  {
+    $unwind: "$customer_details"
+  },
+  {
+    $project: {
+      _id: 0,
+      customerName: "$customer_details.name",
+      order_id: "$mostExpensiveOrder.order_id",
+      total_value: "$mostExpensiveOrder.total_value"
+    }
+  }
+]);
+
+// Advanced MongoDB Operations and Relationships
+
+// 1. Find Customers Who Have Not Placed Orders
+db.customers.aggregate([
+  {
+    $lookup: {
+      from: "orders",
+      localField: "_id",
+      foreignField: "customer_id",
+      as: "orders"
+    }
+  },
+  {
+    $match: {
+      orders: { $eq: [] } // Customers with no orders
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      name: 1,
+      email: 1
+    }
+  }
+]);
+
+// 2. Calculate the Average Number of Items Ordered per Order
+db.orders.aggregate([
+  {
+    $project: {
+      numItems: { $size: "$items" }
+    }
+  },
+  {
+    $group: {
+      _id: null,
+      avgItemsPerOrder: { $avg: "$numItems" }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      avgItemsPerOrder: 1
+    }
+  }
+]);
+
+// 3. Join Customer and Order Data Using $lookup
+db.customers.aggregate([
+  {
+    $lookup: {
+      from: "orders",
+      localField: "_id",
+      foreignField: "customer_id",
+      as: "orderDetails"
+    }
+  },
+  {
+    $unwind: "$orderDetails"
+  },
+  {
+    $project: {
+      _id: 0,
+      customerName: "$name",
+      email: 1,
+      order_id: "$orderDetails.order_id",
+      total_value: "$orderDetails.total_value",
+      order_date: "$orderDetails.order_date"
+    }
+  }
+]);
+
